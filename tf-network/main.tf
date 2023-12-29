@@ -16,8 +16,10 @@ module "subnet-AD-corp" {
 module "subnet-ID-corp" {
     source = "./modules/subnet-ID-corp"
     subnet_id_ID-corp = aws_subnet.private_subnet[1].id 
+    security_group_id = aws_security_group.allow_ssh.id
 }
 
 module "subnet-public" {
     source = "./modules/subnet-public"
+    subnet_id-public = aws_subnet.public_subnet.id
 }

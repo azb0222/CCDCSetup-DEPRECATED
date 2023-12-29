@@ -1,6 +1,6 @@
 # Output the VPC ID and subnet IDs
 output "vpc_id" {
-  value = aws_vpc.ccdc_vpc.id
+  value = aws_vpc.ccdc_blue_team.id
 }
 
 output "public_subnet_ids" {
