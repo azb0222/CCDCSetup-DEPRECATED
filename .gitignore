@@ -35,3 +35,9 @@ terraform.rc
 
 # generated private key files 
 *.pem
+
+# generated instance_ip.json 
+instance_ips.json
+
+# generated vagrant config files
+.vagrant 

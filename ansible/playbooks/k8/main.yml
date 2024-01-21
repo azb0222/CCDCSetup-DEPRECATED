@@ -1,0 +1,4 @@
+---
+- import_playbook: allNodes.yml
+- import_playbook: masterNode.yml
+- import_playbook: workerNodes.yml

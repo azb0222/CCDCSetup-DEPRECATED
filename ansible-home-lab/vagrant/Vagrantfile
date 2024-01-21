@@ -1,0 +1,81 @@
+# boxes = [
+#     {
+#         :name => "k8ControlNode",
+#         :eth1 => "192.168.56.10",
+#         :mem => "1024",
+#         :cpu => "1",
+#         :image => "spox/ubuntu-arm"
+#     }, 
+#     {
+#         :name => "K8WorkerNode1",
+#         :eth1 => "192.168.56.11",
+#         :mem => "1024",
+#         :cpu => "1",
+#         :image => "spox/ubuntu-arm"
+#     }, 
+#     {
+#         :name => "K8WorkerNode2",
+#         :eth1 => "192.168.56.12",
+#         :mem => "1024",
+#         :cpu => "1",
+#         :image => "spox/ubuntu-arm"
+#     }, 
+# ]
+
+# AD_boxes = [ ] #TOADD
+
+# Vagrant.configure(2) do |config|
+#     boxes.each do |opts|
+#       config.vm.define opts[:name] do |config|
+#         config.vm.box = opts[:image]
+#         config.vm.hostname = opts[:name]
+#         config.vm.provider "vmware_desktop" do |v|
+#             v.memory = opts[:mem]
+#             v.gui = true 
+#             v.cpus = opts[:cpu]
+#         end
+#         config.vm.network :private_network, ip: opts[:eth1]
+#       end
+#     end  
+#   end
+
+
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+VAGRANTFILE_API_VERSION = "2"
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  # Configuring the Ansible Control Node
+  config.vm.define "ansible_control" do |ansible|
+    ansible.vm.box = "spox/ubuntu-arm"
+    ansible.vm.provider "vmware_desktop" 
+    ansible.vm.hostname = "ansible-control"
+    ansible.vm.network :private_network, ip: "192.168.33.10"
+
+    # SSH key setup for Ansible Control Node
+    # ansible.ssh.insert_key = false
+    # ansible.vm.provision "file", source: "~/.ssh/ansible_id_rsa.pub", destination: "~/.ssh/authorized_keys"
+    # ansible.vm.provision "shell", inline: <<-SHELL
+    #   apt-get update
+    #   apt-get install -y ansible
+    # SHELL
+  end
+
+  #TODO: do array for managed nodes 
+  # Configuring a Managed Node
+  config.vm.define "managed_node_1" do |node|
+    node.vm.box = "spox/ubuntu-arm"
+    node.vm.provider "vmware_desktop"
+    node.vm.hostname = "managed-node-1"
+    node.vm.network :private_network, ip: "192.168.33.11"
+
+    # SSH key setup for Managed Node
+    node.ssh.insert_key = true
+  end
+
+  # Add more managed nodes as needed
+  # config.vm.define "managed_node_2" do |node|
+  #   ...
+  # end
+end

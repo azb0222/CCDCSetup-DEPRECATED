@@ -9,14 +9,10 @@ terraform {
  
 
 //modules
-module "connection-machines" { 
-  source = "./modules/connection-machines"
-  subnet_id_connection_machine = aws_subnet.subnets["connection_machines"].id
-  vpc_id = aws_vpc.ccdc_setup.id
-}
-
 module "wireguard" { 
   source = "./modules/wireguard"
+  subnet_id-wireguard = aws_subnet.subnets["wireguard"].id
+  vpc_id = aws_vpc.ccdc_setup.id
 }
 
 module "subnet-public" {
@@ -31,6 +27,6 @@ module "subnet-AD-corp" {
 module "subnet-ID-corp" {
     source = "./modules/subnet-ID-corp"
     subnet_id_ID-corp =  aws_subnet.subnets["ID_corp"].id
-
+    //is this used? idfk 
     security_group_id = aws_security_group.workstation-security-group.id
 }

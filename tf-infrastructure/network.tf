@@ -21,7 +21,6 @@ resource "aws_vpc" "ccdc_setup" {
 
 /*
   5 SUBNETS: 
-  Connection_Machines: 10.0.0.0/24
   Wireguard: 10.0.1.0/24
   Public: 10.0.2.0/24
   AD_Corp: 10.0.3.0/24
@@ -76,7 +75,8 @@ resource "aws_nat_gateway" "nat_gateway" {
   Public route table 
   AD_Corp route table 
   Id_Corp route table 
-  format like subnet 
+  wireguard server route table 
+  TODO: format like subnet 
 
 */
 resource "aws_route_table" "public_rt" {
@@ -121,8 +121,7 @@ resource "aws_route_table_association" "ID_Corp_rt_a" {
   route_table_id = aws_route_table.ID_Corp_rt.id
 }
 
-
-resource "aws_route_table" "Connection_machines_rt" { //can use one rt? 
+resource "aws_route_table" "wireguard_rt" { //can use one rt? 
   vpc_id = aws_vpc.ccdc_setup.id
 
   route {
@@ -131,9 +130,9 @@ resource "aws_route_table" "Connection_machines_rt" { //can use one rt?
   }
 }
 
-resource "aws_route_table_association" "Connection_machines_rt_a" {
-  subnet_id      = aws_subnet.subnets["connection_machines"].id
-  route_table_id = aws_route_table.Connection_machines_rt.id
+resource "aws_route_table_association" "wireguard_rt_a" {
+  subnet_id      = aws_subnet.subnets["wireguard"].id
+  route_table_id = aws_route_table.wireguard_rt.id
 }
 
 
@@ -143,6 +142,8 @@ resource "aws_route_table_association" "Connection_machines_rt_a" {
   wg-bastion-security-group
   workstation-security-group
   k8-nodes-security-group
+
+  these have to be reworked 
 */
 resource "aws_security_group" "wg-bastion-security-group" {
   name        = "wg-bastion-security-group"
