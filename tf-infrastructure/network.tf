@@ -10,21 +10,21 @@ provider "aws" {
   CCDC_Setup: 10.0.0.0/16
 */
 resource "aws_vpc" "ccdc_setup" {
-  cidr_block = "10.0.0.0/16" 
+  cidr_block           = "10.0.0.0/16"
   enable_dns_hostnames = true
-  enable_dns_support = true
-  tags =  {
+  enable_dns_support   = true
+  tags = {
     Name = "ccdc-setup"
   }
 }
 
 
 /*
-  5 SUBNETS: 
-  Wireguard: 10.0.1.0/24
-  Public: 10.0.2.0/24
-  AD_Corp: 10.0.3.0/24
-  Id_Corp: 10.0.4.0/24
+  4 SUBNETS: 
+  Wireguard: 10.0.0.0/24
+  AD_Corp: 10.0.1.0/24
+  Id_Corp: 10.0.2.0/24
+  K8: 10.0.3.0/24
 */
 
 
@@ -45,12 +45,11 @@ resource "aws_subnet" "subnets" {
   INTERNET CONNECTIVITY: 
   internet_gateway 
   NAT 
-
 */
 resource "aws_internet_gateway" "internet_gateway" {
   vpc_id = aws_vpc.ccdc_setup.id
 
-  tags = { 
+  tags = {
     Name = "internet_gateway"
   }
 }
@@ -61,7 +60,7 @@ resource "aws_eip" "nat" { // Elastic IP address, static public IPv4 that will b
 
 resource "aws_nat_gateway" "nat_gateway" {
   allocation_id = aws_eip.nat.id
-  subnet_id     = aws_subnet.subnets["public_subnet"].id
+  subnet_id     = aws_subnet.subnets["wireguard"].id //TODO is this right?? 
 
   tags = {
     Name = "gw NAT"
@@ -72,12 +71,10 @@ resource "aws_nat_gateway" "nat_gateway" {
 
 /*
   ROUTE TABLES
-  Public route table 
-  AD_Corp route table 
-  Id_Corp route table 
-  wireguard server route table 
-  TODO: format like subnet 
-
+  Wireguard route table (public)
+  AD_Corp route table (private)
+  Id_Corp route table (private)
+  K8 route table (private)
 */
 resource "aws_route_table" "public_rt" {
   vpc_id = aws_vpc.ccdc_setup.id
@@ -89,11 +86,11 @@ resource "aws_route_table" "public_rt" {
 }
 
 resource "aws_route_table_association" "public_rt_a" {
-  subnet_id      = aws_subnet.subnets["public_subnet"].id
+  subnet_id      = aws_subnet.subnets["wireguard"].id #TODO is this right??? 
   route_table_id = aws_route_table.public_rt.id
 }
 
-resource "aws_route_table" "AD_Corp_rt" {
+resource "aws_route_table" "private_route_table" {
   vpc_id = aws_vpc.ccdc_setup.id
 
   route {
@@ -102,48 +99,16 @@ resource "aws_route_table" "AD_Corp_rt" {
   }
 }
 
-resource "aws_route_table_association" "AD_Corp_rt_a" {
-  subnet_id      = aws_subnet.subnets["AD_corp"].id
-  route_table_id = aws_route_table.AD_Corp_rt.id
+resource "aws_route_table_association" "private_route_table_associations" {
+  for_each       = var.private_subnets_route_tables_association
+  subnet_id      = each.value.subnet_id
+  route_table_id = aws_route_table.private_route_table.id
 }
-
-resource "aws_route_table" "ID_Corp_rt" {
-  vpc_id = aws_vpc.ccdc_setup.id
-
-  route {
-    cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.nat_gateway.id
-  }
-}
-
-resource "aws_route_table_association" "ID_Corp_rt_a" {
-  subnet_id      = aws_subnet.subnets["ID_corp"].id
-  route_table_id = aws_route_table.ID_Corp_rt.id
-}
-
-resource "aws_route_table" "wireguard_rt" { //can use one rt? 
-  vpc_id = aws_vpc.ccdc_setup.id
-
-  route {
-    cidr_block     = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.internet_gateway.id
-  }
-}
-
-resource "aws_route_table_association" "wireguard_rt_a" {
-  subnet_id      = aws_subnet.subnets["wireguard"].id
-  route_table_id = aws_route_table.wireguard_rt.id
-}
-
-
 
 /*
   SECURITY GROUPS 
   wg-bastion-security-group
-  workstation-security-group
-  k8-nodes-security-group
-
-  these have to be reworked 
+  k8-security-group TODO 
 */
 resource "aws_security_group" "wg-bastion-security-group" {
   name        = "wg-bastion-security-group"
@@ -201,9 +166,4 @@ resource "aws_security_group" "workstation-security-group" {
     Name = "allow_access_from_wireguard_only"
   }
 }
-
-
-/*
-  FILES - generate inventory files for Ansible: 
-*/ 
 
