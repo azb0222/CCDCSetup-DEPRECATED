@@ -1,0 +1,6 @@
+- the timer thing in the master node 
+- use variables 
+- better structure
+- store kubectl apply command in variable instead of file?? 
+- go through and add comments 
+- go through and figure out wtf was wrong with that users issue in master node 
