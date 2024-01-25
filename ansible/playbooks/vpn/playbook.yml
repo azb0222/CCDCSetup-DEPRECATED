@@ -9,7 +9,7 @@
 - name: Setup Wireguard VPN
   hosts: vpn
   vars:
-    ansible_ssh_private_key_file: ../../../tf-infrastructure/modules/wireguard/ssh_keys/privatekey.pem
+    ansible_ssh_private_key_file: ../../../test/ssh_keys/private_key.pem
     ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
   remote_user: ubuntu
   become: yes
@@ -107,6 +107,9 @@
         state: present
         sysctl_set: yes
         reload: yes
+
+    - name: TODO DELETE THIS  
+      ansible.builtin.command: wg-quick down server
 
     - name: Start Server
       ansible.builtin.command: wg-quick up server
