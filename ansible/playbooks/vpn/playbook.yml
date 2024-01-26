@@ -108,9 +108,6 @@
         sysctl_set: yes
         reload: yes
 
-    - name: TODO DELETE THIS  
-      ansible.builtin.command: wg-quick down server
-
     - name: Start Server
       ansible.builtin.command: wg-quick up server
 

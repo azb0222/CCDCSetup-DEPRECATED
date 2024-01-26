@@ -54,9 +54,9 @@ resource "aws_internet_gateway" "internet_gateway" {
   }
 }
 
-resource "aws_eip" "nat" { // Elastic IP address, static public IPv4 that will be used for nat_gateway
-  vpc = true
-}
+# resource "aws_eip" "nat" { // Elastic IP address, static public IPv4 that will be used for nat_gateway
+#   domain = "vpc"
+# }
 
 resource "aws_nat_gateway" "nat_gateway" {
   allocation_id = aws_eip.nat.id
@@ -76,7 +76,7 @@ resource "aws_nat_gateway" "nat_gateway" {
   Id_Corp route table (private)
   K8 route table (private)
 */
-resource "aws_route_table" "public_rt" {
+resource "aws_route_table" "public_rt" { //allows traffic to flow from internet gateway to public wireguard subnet
   vpc_id = aws_vpc.ccdc_setup.id
 
   route {
@@ -86,7 +86,7 @@ resource "aws_route_table" "public_rt" {
 }
 
 resource "aws_route_table_association" "public_rt_a" {
-  subnet_id      = aws_subnet.subnets["wireguard"].id #TODO is this right??? 
+  subnet_id      = aws_subnet.subnets["wireguard"].id 
   route_table_id = aws_route_table.public_rt.id
 }
 

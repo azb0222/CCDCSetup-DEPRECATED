@@ -15,20 +15,26 @@ variable "subnets" {
       map_public_ip_on_launch = true
       name                    = "Wireguard"
     },
-    "AD_corp" = {
+    "AD_corp_1" = {
       cidr_block              = "10.0.1.0/24"
-      availability_zone       = "us-east-1b"
+      availability_zone       = "us-east-1a"
+      map_public_ip_on_launch = false
+      name                    = "AD_corp"
+    }
+    "AD_corp_2" = {
+      cidr_block              = "10.0.2.0/24"
+      availability_zone       = "us-east-1a"
       map_public_ip_on_launch = false
       name                    = "AD_corp"
     }
     "ID_corp" = {
-      cidr_block              = "10.0.2.0/24"
+      cidr_block              = "10.0.3.0/24"
       availability_zone       = "us-east-1c"
       map_public_ip_on_launch = false
       name                    = "ID_corp"
     }
     "K8" = {
-      cidr_block              = "10.0.3.0/24"
+      cidr_block              = "10.0.4.0/24"
       availability_zone       = "us-east-1d"
       map_public_ip_on_launch = false
       name                    = "K8"
