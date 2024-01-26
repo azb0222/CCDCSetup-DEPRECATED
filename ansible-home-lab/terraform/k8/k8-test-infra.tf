@@ -117,7 +117,7 @@ resource "aws_security_group" "k8Worker_security_group" {
 
 // Master node instance
 resource "aws_instance" "k8Master" {
-  ami                         = "ami-05fb0b8c1424f266b"
+  ami                         =  "ami-07b36ea9852e986ad" //NOTE: YOU MUST USE UBUNTU SERVER 20.04
   instance_type               = "t2.medium"
   key_name                    = aws_key_pair.ssh_key_pair_k8.key_name
   associate_public_ip_address = true
@@ -130,7 +130,7 @@ resource "aws_instance" "k8Master" {
 
 // Worker node 1 instance
 resource "aws_instance" "k8worker1" {
-  ami                         = "ami-05fb0b8c1424f266b"
+  ami                         = "ami-07b36ea9852e986ad"  //NOTE: YOU MUST USE UBUNTU SERVER 20.04
   instance_type               = "t2.medium"
   key_name                    = aws_key_pair.ssh_key_pair_k8.key_name
   associate_public_ip_address = true
@@ -143,7 +143,7 @@ resource "aws_instance" "k8worker1" {
 
 // Worker node 2 instance
 resource "aws_instance" "k8worker2" {
-  ami                         = "ami-05fb0b8c1424f266b"
+  ami                         = "ami-07b36ea9852e986ad"  //NOTE: YOU MUST USE UBUNTU SERVER 20.04
   instance_type               = "t2.medium"
   key_name                    = aws_key_pair.ssh_key_pair_k8.key_name
   associate_public_ip_address = true
@@ -173,4 +173,38 @@ resource "local_file" "private_key_file" {
   provisioner "local-exec" {
     command = "mkdir -p ${path.module}/ssh_keys && chmod 700 ${path.module}/ssh_keys"
   }
+}
+resource "aws_iam_user" "ebs_csi_driver_user" {
+  name = "ebs-csi-driver-user"
+}
+
+resource "aws_iam_access_key" "ebs_csi_driver_user_key" {
+  user = aws_iam_user.ebs_csi_driver_user.name
+}
+
+resource "aws_iam_user_policy_attachment" "ebs_csi_driver_user_attach" {
+  user       = aws_iam_user.ebs_csi_driver_user.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
+}
+
+resource "local_file" "aws_credentials" {
+  content = <<EOF
+AWS Access Key ID: ${aws_iam_access_key.ebs_csi_driver_user_key.id}
+AWS Secret Access Key: ${aws_iam_access_key.ebs_csi_driver_user_key.secret}
+EOF
+  filename = "${path.module}/ebs-csi-driver-user-credentials.txt"
+}
+
+data "template_file" "inventory" {
+  template = file("${path.module}/inventory.tpl")
+
+  vars = {
+    master_ip   = aws_instance.k8Master.public_ip
+    worker_ips  = [aws_instance.k8worker1.public_ip, aws_instance.k8worker2.public_ip]
+  }
+}
+
+resource "local_file" "ansible_inventory" {
+  content  = data.template_file.inventory.rendered
+  filename = "${path.module}/inventory.ini"
 }
